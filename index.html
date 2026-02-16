@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GS Notlarım - Kişisel Not Uygulaması</title>
+    <meta name="description"
+        content="Galatasaray temalı, gerçek zamanlı kişisel not uygulaması. Sürükle bırak, klasör yapısı ve Firebase entegrasyonu.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <!-- Üst Bar -->
+    <header class="topbar">
+        <div class="topbar-left">
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 40 40" fill="none">
+                        <circle cx="20" cy="20" r="18" stroke="#FDB912" stroke-width="3" />
+                        <path d="M20 8 L24 18 L34 18 L26 24 L29 34 L20 28 L11 34 L14 24 L6 18 L16 18 Z"
+                            fill="#FDB912" />
+                    </svg>
+                </div>
+                <h1>GS Notlarım</h1>
+            </div>
+        </div>
+        <div class="topbar-center">
+            <div class="search-box">
+                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8" />
+                    <path d="m21 21-4.35-4.35" />
+                </svg>
+                <input type="text" id="searchInput" placeholder="Notlarda ara..." autocomplete="off">
+            </div>
+        </div>
+        <div class="topbar-right">
+            <button class="btn-icon" id="viewToggle" title="Görünümü Değiştir">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7" rx="1" />
+                    <rect x="14" y="3" width="7" height="7" rx="1" />
+                    <rect x="3" y="14" width="7" height="7" rx="1" />
+                    <rect x="14" y="14" width="7" height="7" rx="1" />
+                </svg>
+            </button>
+            <button class="btn-icon" id="themeToggle" title="Tema Değiştir">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                </svg>
+            </button>
+            <div class="user-badge" id="connectionStatus">
+                <span class="status-dot offline"></span>
+                <span>Demo Mod</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="app-container">
+        <!-- Kenar Çubuğu (Sidebar) -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2>Klasörler</h2>
+                <button class="btn-icon-sm" id="addFolderBtn" title="Yeni Klasör">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 5v14M5 12h14" />
+                    </svg>
+                </button>
+            </div>
+            <nav class="folder-list" id="folderList">
+                <!-- Klasörler buraya gelecek -->
+            </nav>
+            <div class="sidebar-footer">
+                <div class="stats">
+                    <span id="noteCount">0 not</span>
+                    <span id="folderCount">0 klasör</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Ana İçerik -->
+        <main class="main-content">
+            <div class="content-header">
+                <div class="breadcrumb" id="breadcrumb">
+                    <span class="breadcrumb-item active" data-folder="all">Tüm Notlar</span>
+                </div>
+                <div class="content-actions">
+                    <button class="btn-primary" id="addNoteBtn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 5v14M5 12h14" />
+                        </svg>
+                        Yeni Not
+                    </button>
+                </div>
+            </div>
+
+            <!-- Boş durum mesajı -->
+            <div class="empty-state" id="emptyState" style="display:none;">
+                <div class="empty-icon">
+                    <svg viewBox="0 0 80 80" fill="none">
+                        <rect x="10" y="15" width="60" height="50" rx="8" stroke="#FDB912" stroke-width="3"
+                            stroke-dasharray="6 3" />
+                        <path d="M30 35h20M30 45h14" stroke="#A90432" stroke-width="2.5" stroke-linecap="round" />
+                    </svg>
+                </div>
+                <h3>Henüz not yok</h3>
+                <p>"Yeni Not" butonuna tıklayarak ilk notunuzu oluşturun!</p>
+            </div>
+
+            <!-- Not Izgarası -->
+            <div class="notes-grid" id="notesGrid">
+                <!-- Notlar buraya gelecek -->
+            </div>
+        </main>
+    </div>
+
+    <!-- Not Düzenleme Modalı -->
+    <div class="modal-overlay" id="noteModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="modalTitle">Yeni Not</h2>
+                <button class="btn-icon" id="closeModal">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 6 6 18M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="noteTitle">Başlık</label>
+                    <input type="text" id="noteTitle" placeholder="Not başlığı..." maxlength="100">
+                </div>
+                <div class="form-group">
+                    <label for="noteContent">İçerik</label>
+                    <textarea id="noteContent" rows="10" placeholder="Notunuzu buraya yazın..."></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="noteColor">Renk</label>
+                        <div class="color-picker" id="colorPicker">
+                            <button class="color-opt active" data-color="#A90432" style="background:#A90432"
+                                title="Kırmızı"></button>
+                            <button class="color-opt" data-color="#FDB912" style="background:#FDB912"
+                                title="Sarı"></button>
+                            <button class="color-opt" data-color="#1a1a2e" style="background:#1a1a2e"
+                                title="Koyu"></button>
+                            <button class="color-opt" data-color="#16213e" style="background:#16213e"
+                                title="Lacivert"></button>
+                            <button class="color-opt" data-color="#0f3460" style="background:#0f3460"
+                                title="Mavi"></button>
+                            <button class="color-opt" data-color="#533483" style="background:#533483"
+                                title="Mor"></button>
+                            <button class="color-opt" data-color="#e94560" style="background:#e94560"
+                                title="Pembe"></button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="noteFolder">Klasör</label>
+                        <select id="noteFolder">
+                            <option value="">Klasör seçin...</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Öncelik</label>
+                    <div class="priority-picker" id="priorityPicker">
+                        <button class="priority-opt" data-priority="low">Düşük</button>
+                        <button class="priority-opt active" data-priority="medium">Normal</button>
+                        <button class="priority-opt" data-priority="high">Yüksek</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="deleteNoteBtn" style="display:none;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                        <polyline points="3 6 5 6 21 6" />
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                    </svg>
+                    Sil
+                </button>
+                <button class="btn-primary" id="saveNoteBtn">Kaydet</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Klasör Ekleme Modalı -->
+    <div class="modal-overlay" id="folderModal">
+        <div class="modal modal-sm">
+            <div class="modal-header">
+                <h2 id="folderModalTitle">Yeni Klasör</h2>
+                <button class="btn-icon" id="closeFolderModal">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 6 6 18M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="folderName">Klasör Adı</label>
+                    <input type="text" id="folderName" placeholder="Klasör adı..." maxlength="50">
+                </div>
+                <div class="form-group">
+                    <label>Klasör İkonu</label>
+                    <div class="folder-icon-picker" id="folderIconPicker">
+                        <button class="folder-icon-opt active" data-icon="📁" title="Klasör">📁</button>
+                        <button class="folder-icon-opt" data-icon="⭐" title="Yıldız">⭐</button>
+                        <button class="folder-icon-opt" data-icon="💼" title="İş">💼</button>
+                        <button class="folder-icon-opt" data-icon="🏠" title="Ev">🏠</button>
+                        <button class="folder-icon-opt" data-icon="📚" title="Eğitim">📚</button>
+                        <button class="folder-icon-opt" data-icon="🎯" title="Hedef">🎯</button>
+                        <button class="folder-icon-opt" data-icon="💡" title="Fikir">💡</button>
+                        <button class="folder-icon-opt" data-icon="🦁" title="Aslan">🦁</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="deleteFolderBtn" style="display:none;">Sil</button>
+                <button class="btn-primary" id="saveFolderBtn">Kaydet</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Bildirimi -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Firebase SDK (CDN) - Compat sürüm file:// protokolünde çalışır -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>
